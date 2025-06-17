@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Weather API Tester</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .container { max-width: 800px; }
+        button { background: #4CAF50; color: white; padding: 10px 20px; border: none; cursor: pointer; margin: 5px; }
+        button:hover { background: #45a049; }
+        .result { background: #f1f1f1; padding: 15px; margin: 10px 0; border-radius: 5px; max-height: 400px; overflow-y: auto; }
+        .loading { color: orange; }
+        .success { color: green; }
+        .error { color: red; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🌪️ Weather Impact API Tester</h1>
+        
+        <h3>Test Endpoints:</h3>
+        <button onclick="testBasicAnalysis()">Test Basic Analysis</button>
+        <button onclick="testEnhancedAnalysis()">Test Enhanced Analysis</button>
+        <button onclick="testKenyaCCRI()">Test Kenya CCRI</button>
+        <button onclick="testMethodComparison()">Test Method Comparison</button>
+        <button onclick="testVisualization()">Test Animated Viz</button>
+        <button onclick="testHealthCheck()">Health Check</button>
+        
+        <div id="result" class="result">
+            <p>Click a button above to test an API endpoint...</p>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = 'http://localhost:5000';
+        
+        function showLoading() {
+            document.getElementById('result').innerHTML = '<p class="loading">⏳ Loading...</p>';
+        }
+        
+        function showResult(data, endpoint) {
+            const resultDiv = document.getElementById('result');
+            resultDiv.innerHTML = `
+                <h4 class="success">✅ ${endpoint} - SUCCESS</h4>
+                <pre>${JSON.stringify(data, null, 2)}</pre>
+            `;
+        }
+        
+        function showError(error, endpoint) {
+            const resultDiv = document.getElementById('result');
+            resultDiv.innerHTML = `
+                <h4 class="error">❌ ${endpoint} - ERROR</h4>
+                <pre>${error}</pre>
+            `;
+        }
+        
+        async function testBasicAnalysis() {
+            showLoading();
+            try {
+                const response = await fetch(`${API_BASE}/api/analyze`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        "bbox": [33.4, -5.5, 42.9, 6.0],
+                        "days_ahead": 7,
+                        "country_code": "KEN"
+                    })
+                });
+                const data = await response.json();
+                showResult(data, 'Basic Analysis');
+            } catch (error) {
+                showError(error.message, 'Basic Analysis');
+            }
+        }
+        
+
+        async function testEnhancedAnalysis() {
+            showLoading();
+            try {
+                const response = await fetch(`${API_BASE}/api/analyze/enhanced`, {
+                    method: 'POST',
+                    headers: { 
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        "bbox": [33.4, -5.5, 42.9, 6.0],
+                        "days_ahead": 5,
+                        "country_code": "KEN",
+                        "interpolation_method": "idw"
+                    })
+                });
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+                
+                const data = await response.json();
+                
+                if (data.status === 'error') {
+                    throw new Error(data.message || 'Unknown API error');
+                }
+                
+                showResult(data, 'Enhanced Analysis');
+            } catch (error) {
+                console.error('Enhanced Analysis Error:', error);
+                showError(error.message, 'Enhanced Analysis');
+            }
+        }
+
+        
+        async function testKenyaCCRI() {
+            showLoading();
+            try {
+                const response = await fetch(`${API_BASE}/api/analyze/kenya`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        "bbox": [33.4, -5.5, 42.9, 6.0],
+                        "days_ahead": 7,
+                        "interpolation_method": "kriging",
+                        "use_real_ccri_data": true,
+                        "ccri_data_path": "data/kenya_ccri.xlsx"
+                    })
+                });
+                const data = await response.json();
+                showResult(data, 'Kenya CCRI Analysis');
+            } catch (error) {
+                showError(error.message, 'Kenya CCRI Analysis');
+            }
+        }
+        
+        async function testMethodComparison() {
+            showLoading();
+            try {
+                const response = await fetch(`${API_BASE}/api/compare/methods`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        "bbox": [33.4, -5.5, 42.9, 6.0],
+                        "days_ahead": 3
+                    })
+                });
+                const data = await response.json();
+                showResult(data, 'Method Comparison');
+            } catch (error) {
+                showError(error.message, 'Method Comparison');
+            }
+        }
+        
+        async function testVisualization() {
+            showLoading();
+            try {
+                const response = await fetch(`${API_BASE}/api/visualize/animated`);
+                const data = await response.json();
+                showResult(data, 'Animated Visualization');
+            } catch (error) {
+                showError(error.message, 'Animated Visualization');
+            }
+        }
+        
+        async function testHealthCheck() {
+            showLoading();
+            try {
+                const response = await fetch(`${API_BASE}/api/health`);
+                const data = await response.json();
+                showResult(data, 'Health Check');
+            } catch (error) {
+                showError(error.message, 'Health Check');
+            }
+        }
+    </script>
+</body>
+</html>
